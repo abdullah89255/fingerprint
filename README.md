@@ -133,6 +133,136 @@ wpscan --url example.com --enumerate vp,vt
 
 ---
 
+---
+
+# 1) **CMSeeK / CMSeek** — general CMS detection + exploitation suite
+
+What it is: multi-CMS detection & exploitation (WordPress, Joomla, Drupal and many others). Very similar in scope to CMSmap and available in Kali repos.
+When to use: you want an all-in-one CMS reconnaissance tool that can do both detection and some exploitation/enumeration.
+Install / run (Kali / git):
+
+```bash
+# from Kali package (if available)
+sudo apt update && sudo apt install cmseek
+
+# or from GitHub
+git clone https://github.com/Tuhinshubhra/CMSeeK.git
+cd CMSeeK
+python3 cmseek.py -u https://example.com
+```
+
+Example run: `python3 cmseek.py -u https://example.com --deep` (performs deeper plugin/theme enumeration). ([GitHub][1])
+
+---
+
+# 2) **WPScan / Vane** — WordPress-focused (best for WP)
+
+What it is: WPScan is the canonical, actively maintained WordPress vulnerability scanner; **Vane** is a fork/alternative focusing on WP as well.
+When to use: target is WordPress — use these instead of generic CMS scanners for better plugin/theme vuln detection and a maintained vulnerability DB.
+Install / run (WPScan):
+
+```bash
+# Kali / apt
+sudo apt install wpscan
+
+# quick scan (requires API token for some features)
+wpscan --url https://example.com --enumerate vp,vt,u
+```
+
+Strength: huge WP vulnerability database and active updates. ([WPScan][2])
+
+---
+
+# 3) **Droopescan** — Drupal & SilverStripe (plugin-based)
+
+What it is: plugin-based CMS scanner focusing on Drupal, SilverStripe and a few others; extensible via plugins.
+When to use: target looks like Drupal/SilverStripe — Droopescan gives better coverage than generic scanners for those platforms.
+Install / run:
+
+```bash
+git clone https://github.com/droopescan/droopescan.git
+cd droopescan
+python3 setup.py install
+droopescan scan drupal https://example.com
+```
+
+Docs / usage examples are on the project page. ([GitHub][3])
+
+---
+
+# 4) **JoomScan (OWASP)** — Joomla-specific scanner
+
+What it is: OWASP project to detect Joomla vulnerabilities and components.
+When to use: target is Joomla — more accurate Joomla plugin/component checks than a generic tool.
+Install / run:
+
+```bash
+# Kali package or from GitHub
+sudo apt install joomscan
+joomscan -u https://example.com
+```
+
+Lightweight and made specifically for Joomla sites. ([GitHub][4])
+
+---
+
+# 5) **CMSeek (Kali packaged CMSeeK) — packaged & scriptable**
+
+Note: CMSeek/CMSeeK often appears in Kali and Docker registries; convenient if you want a packaged experience or Docker image for automated pipelines. Use the Kali package or the official Docker image for CI. ([Kali Linux][5])
+
+---
+
+# 6) **Th3inspector / other reconnaissance suites** — broader recon (not just CMS)
+
+What it is: multi-purpose recon suites that include CMS detection modules along with subdomain, fingerprinting, and asset discovery. Good when you want CMS detection integrated with wider recon. Use when you want to chain discovery → fingerprinting → vuln checks. ([Linux Security Expert][6])
+
+---
+
+# 7) **Fallback tools: WhatWeb, Wappalyzer, Nmap + NSE**
+
+Why: these aren’t CMS exploit scanners but are excellent for accurate tech identification (WhatWeb / Wappalyzer) and low-level fingerprinting (Nmap http-\* scripts). Use them first to confirm the CMS before running CMS-specific tools. Example:
+
+```bash
+whatweb example.com
+nmap -p80,443 --script=http-headers,http-enum example.com
+```
+
+Combine these with CMS scanners for best results. ([GeeksforGeeks][7])
+
+---
+
+## Quick picking guide
+
+* If **WordPress** → **WPScan / Vane** (best accuracy + DB). ([WPScan][2])
+* If **Joomla** → **JoomScan**. ([GitHub][4])
+* If **Drupal/SilverStripe** → **Droopescan**. ([GitHub][3])
+* If you want a **CMSmap-like all-in-one** → **CMSeeK / CMSeek** (or Th3inspector for broader recon). ([GitHub][1])
+
+---
+
+## Example short workflow (replace tools depending on CMS)
+
+```bash
+# 1) tech fingerprint
+whatweb https://example.com
+
+# 2) quick WAF check / header info
+nmap -p80,443 --script=http-headers example.com
+
+# 3) run CMS-specific scan (example WordPress)
+wpscan --url https://example.com --enumerate vp,vt
+
+# 4) if general CMS detection needed
+python3 CMSeeK/cmseek.py -u https://example.com
+```
+
+---
+
+## Final notes / safety
+
+* Always have explicit authorization before scanning.
+* Some tools (WPScan) require API keys for large-scale vulnerability DB lookups; check docs. ([WPScan][2])
+
 ## Short pros & cons summary
 
 * **WhatWeb** — fast, scriptable, broad detection. Good first pass. ([GitHub][1])
@@ -143,26 +273,3 @@ wpscan --url example.com --enumerate vp,vt
 * **httprint / CMS tools** — specialized fingerprinting (server vs CMS). ([net-square.com][8])
 
 ---
-
-## Legal & safety note (short)
-
-Only fingerprint/scan systems you **own** or have **explicit authorization** to test. Unauthorized scanning can be illegal and harmful — always get permission and follow a scope.
-
----
-
-If you want, I can:
-
-* Give you a **one-file bash script** that runs the workflow above and outputs JSON/text results, or
-* Produce **examples for Kali** (install + apt/Go/PIP commands) for any 3 tools you pick.
-
-Which option do you want next?
-
-[1]: https://github.com/urbanadventurer/WhatWeb?utm_source=chatgpt.com "urbanadventurer/WhatWeb: Next generation web scanner"
-[2]: https://github.com/tomnomnom/wappalyzer?utm_source=chatgpt.com "tomnomnom/wappalyzer: Identify technology on websites."
-[3]: https://pypi.org/project/wappalyzer/?utm_source=chatgpt.com "wappalyzer"
-[4]: https://builtwith.com/?utm_source=chatgpt.com "BuiltWith Technology Lookup"
-[5]: https://nmap.org/nsedoc/scripts/http-enum.html?utm_source=chatgpt.com "http-enum NSE script"
-[6]: https://nmap.org/book/nse-usage.html?utm_source=chatgpt.com "Usage and Examples | Nmap Network Scanning"
-[7]: https://www.geeksforgeeks.org/linux-unix/identification-of-web-application-firewall-using-wafw00f-in-kali-linux/?utm_source=chatgpt.com "Identification of Web Application Firewall using WAFW00F ..."
-[8]: https://net-square.com/httprint.html?utm_source=chatgpt.com "httprint"
-[9]: https://blog.sucuri.net/2023/12/wpscan-intro-how-to-scan-for-wordpress-vulnerabilities.html?utm_source=chatgpt.com "WPScan Intro: How to Scan for WordPress Vulnerabilities"
